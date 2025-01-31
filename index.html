@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloudinary Video Upload Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #uploadedMedia {
+        margin-top: 20px;
+      }
+      video {
+        max-width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Upload Image or Video to Cloudinary</h1>
+    <form id="uploadForm">
+      <input
+        type="file"
+        id="fileInput"
+        name="file"
+        accept="image/*,video/*"
+        required
+      />
+      <button type="submit">Upload</button>
+    </form>
+
+    <div id="uploadedMediaContainer">
+      <!-- The uploaded media (image or video) will be displayed here -->
+    </div>
+
+    <script>
+      // Cloudinary Cloud Name and Upload Preset
+      const cloudName = "dsuickxyg"; // Your Cloudinary cloud name
+      const uploadPreset = "etabemaUpload"; // Your upload preset name
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault(); // Prevent the form from submitting normally
+
+          const fileInput = document.getElementById("fileInput");
+          const file = fileInput.files[0]; // Get the selected file
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", uploadPreset);
+
+          // Send the file to Cloudinary
+          fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.secure_url) {
+                // Clear any previous content
+                document.getElementById("uploadedMediaContainer").innerHTML =
+                  "";
+
+                // Check if the file is a video or image
+                if (file.type.startsWith("video")) {
+                  const videoElement = document.createElement("video");
+                  videoElement.controls = true;
+                  videoElement.src = data.secure_url;
+                  videoElement.alt = "Uploaded Video";
+                  document
+                    .getElementById("uploadedMediaContainer")
+                    .appendChild(videoElement);
+                } else {
+                  const imageElement = document.createElement("img");
+                  imageElement.src = data.secure_url;
+                  imageElement.alt = "Uploaded Image";
+                  document
+                    .getElementById("uploadedMediaContainer")
+                    .appendChild(imageElement);
+                }
+
+                alert("Upload successful! Here's your media.");
+              } else {
+                alert("Upload failed.");
+              }
+            })
+            .catch((error) => {
+              console.error("Error uploading file:", error);
+              alert("An error occurred during upload.");
+            });
+        });
+    </script>
+  </body>
+</html>
